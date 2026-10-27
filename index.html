@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Pareto 80/20</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+</head>
+<body>
+
+<header>
+  <h1>Dashboard Pareto 80/20</h1>
+  <div class="header-actions">
+    <label class="file-btn">
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+      📂 Cargar Excel
+    </label>
+    <button id="btnTemplate" class="secondary">📥 Descargar Plantilla</button>
+    <button id="btnExport" class="secondary">⬇️ Exportar CSV</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- FILTROS -->
+  <section class="filters">
+    <div class="filter">
+      <label>Fecha desde</label>
+      <input type="date" id="fechaDesde">
+    </div>
+    <div class="filter">
+      <label>Fecha hasta</label>
+      <input type="date" id="fechaHasta">
+    </div>
+    <div class="filter">
+      <label>Marca</label>
+      <select id="filtroMarca"><option value="">Todas</option></select>
+    </div>
+    <div class="filter">
+      <label>Negocio</label>
+      <select id="filtroNegocio"><option value="">Todos</option></select>
+    </div>
+    <div class="filter">
+      <label>Métrica</label>
+      <select id="filtroMetrica">
+        <option value="valor">Valor (COSTO OC)</option>
+        <option value="unidades">Unidades (CANT.)</option>
+      </select>
+    </div>
+    <div class="filter">
+      <label>Umbral Pareto: <span id="lblUmbral">80</span>%</label>
+      <input type="range" id="umbral" min="50" max="100" value="80" step="1">
+    </div>
+    <div class="filter">
+      <label>Top N SKU (gráfica)</label>
+      <input type="number" id="topN" min="1" value="20">
+    </div>
+  </section>
+
+  <!-- KPIs -->
+  <section class="kpis">
+    <div class="kpi-card">
+      <div class="kpi-label">Total SKUs</div>
+      <div class="kpi-value" id="kpiTotalSKUs">0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Unidades</div>
+      <div class="kpi-value" id="kpiTotalUnidades">0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Valor total</div>
+      <div class="kpi-value" id="kpiValorTotal">$0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">SKUs que aportan umbral</div>
+      <div class="kpi-value" id="kpiSKUsUmbral">0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">% Concentrado</div>
+      <div class="kpi-value" id="kpiPctConcentrado">0%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Promedio por SKU</div>
+      <div class="kpi-value" id="kpiPromedioSKU">$0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Unidades/día</div>
+      <div class="kpi-value" id="kpiUnidadesDia">0</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Valor/día</div>
+      <div class="kpi-value" id="kpiValorDia">$0</div>
+    </div>
+
+    <!-- NUEVOS KPIs -->
+    <div class="kpi-card highlight">
+      <div class="kpi-label">Promedio Venta Diaria</div>
+      <div class="kpi-value" id="kpiPromVentaDia">$0</div>
+      <div class="kpi-sub">Σ valor ÷ días con ventas</div>
+    </div>
+    <div class="kpi-card highlight">
+      <div class="kpi-label">Promedio OC Recibidas Diarias</div>
+      <div class="kpi-value" id="kpiPromOCDia">0.00</div>
+      <div class="kpi-sub">OCs únicas ÷ días con OC</div>
+    </div>
+  </section>
+
+  <!-- GRÁFICAS -->
+  <section class="charts">
+    <div class="chart-box wide">
+      <h2>Pareto por SKU</h2>
+      <div class="chart-wrapper tall"><canvas id="chartPareto"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h2>Ventas por Marca (Top 15)</h2>
+      <div class="chart-wrapper"><canvas id="chartMarca"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h2>Evolución diaria de ventas</h2>
+      <div class="chart-wrapper"><canvas id="chartEvolucion"></canvas></div>
+    </div>
+  </section>
+
+  <!-- TABLA -->
+  <section class="table-section">
+    <h2>Detalle por SKU</h2>
+    <div class="table-wrapper">
+      <table id="tablaSKUs">
+        <thead>
+          <tr>
+            <th>REF (SKU)</th>
+            <th>CAPRIS</th>
+            <th>Descripción</th>
+            <th>Marca</th>
+            <th class="num">Unidades</th>
+            <th class="num">Valor</th>
+            <th class="num">Participación</th>
+            <th class="num">% Acumulado</th>
+            <th class="center">¿80%?</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
